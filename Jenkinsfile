@@ -27,12 +27,12 @@ pipeline {
     stage('Test') {
         steps {
             sh '''
-            echo "Ejecutando pruebas con pytest en contenedor python (montando workspace)..."
+            echo "Ejecutando pruebas con pytest usando el volumen jenkins_home..."
             docker run --rm \
-                -v "$PWD":/workspace \
-                -w /workspace \
+                -v jenkins_home:/var/jenkins_home \
+                -w /var/jenkins_home/workspace/demo \
                 python:3.11-slim \
-                bash -lc "ls -la && pwd && pip install --no-cache-dir -r requirements.txt && pytest -q"
+                bash -lc "ls -la && pip install --no-cache-dir -r requirements.txt && pytest -q"
             '''
         }
     }
