@@ -38,19 +38,19 @@ pipeline {
     }
 
     stage('Deploy Simulation') {
-      steps {
-        sh """
-          echo "Simulando despliegue (docker run) + health check..."
-          docker rm -f ${CONTAINER_NAME} || true
+        steps {
+            sh '''
+            echo "Simulando despliegue (docker run) + health check..."
+            docker rm -f ${CONTAINER_NAME} || true
 
-          docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:${BUILD_NUMBER}
+            docker run -d --name ${CONTAINER_NAME} -p 5001:5000 ${IMAGE_NAME}:${BUILD_NUMBER}
 
-          sleep 3
-          curl -sSf http://localhost:5000/health
-          echo ""
-          echo "OK - App arriba en /health"
-        """
-      }
+            sleep 6
+            curl -sSf http://localhost:5001/health
+            echo ""
+            echo "OK - App arriba en /health"
+            '''
+        }
     }
   }
 
