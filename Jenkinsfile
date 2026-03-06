@@ -25,16 +25,16 @@ pipeline {
     }
 
     stage('Test') {
-      steps {
-        sh """
-          echo "Ejecutando pruebas con pytest en contenedor python (montando workspace)..."
-          docker run --rm \
-            -v "\$PWD":/workspace \
-            -w /workspace \
-            python:3.11-slim \
-            bash -lc "pip install --no-cache-dir -r requirements.txt && pytest -q"
-        """
-      }
+        steps {
+            sh '''
+            echo "Ejecutando pruebas con pytest en contenedor python (montando workspace)..."
+            docker run --rm \
+                -v "$PWD":/workspace \
+                -w /workspace \
+                python:3.11-slim \
+                bash -lc "ls -la && pwd && pip install --no-cache-dir -r requirements.txt && pytest -q"
+            '''
+        }
     }
 
     stage('Deploy Simulation') {
