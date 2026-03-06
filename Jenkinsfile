@@ -43,10 +43,13 @@ pipeline {
             echo "Simulando despliegue (docker run) + health check..."
             docker rm -f ${CONTAINER_NAME} || true
 
-            docker run -d --name ${CONTAINER_NAME} -p 5001:5000 ${IMAGE_NAME}:${BUILD_NUMBER}
+            docker run -d --name ${CONTAINER_NAME} \
+                --add-host=host.docker.internal:host-gateway \
+                -p 5001:5000 \
+                ${IMAGE_NAME}:${BUILD_NUMBER}
 
             sleep 6
-            curl -sSf http://localhost:5001/health
+            curl -sSf http://host.docker.internal:5001/health
             echo ""
             echo "OK - App arriba en /health"
             '''
