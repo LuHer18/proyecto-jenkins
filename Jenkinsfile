@@ -1,0 +1,71 @@
+pipeline {
+  agent any
+
+  environment {
+    IMAGE_NAME = "devops-demo-app"
+    CONTAINER_NAME = "devops-demo-running"
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'ls -la'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh """
+          echo "Construyendo imagen Docker..."
+          docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+        """
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh """
+          echo "Ejecutando pruebas con pytest en contenedor python (montando workspace)..."
+          docker run --rm \
+            -v "\$PWD":/workspace \
+            -w /workspace \
+            python:3.11-slim \
+            bash -lc "pip install --no-cache-dir -r requirements.txt && pytest -q"
+        """
+      }
+    }
+
+    stage('Deploy Simulation') {
+      steps {
+        sh """
+          echo "Simulando despliegue (docker run) + health check..."
+          docker rm -f ${CONTAINER_NAME} || true
+
+          docker run -d --name ${CONTAINER_NAME} -p 5000:5000 ${IMAGE_NAME}:${BUILD_NUMBER}
+
+          sleep 3
+          curl -sSf http://localhost:5000/health
+          echo ""
+          echo "OK - App arriba en /health"
+        """
+      }
+    }
+  }
+
+  post {
+    always {
+      sh """
+        echo "Limpieza (opcional)..."
+        docker logs ${CONTAINER_NAME} || true
+      """
+    }
+    success {
+      echo "Pipeline completado con ÉXITO."
+    }
+    failure {
+      echo "Pipeline FALLÓ. Revisa la consola."
+    }
+  }
+}
